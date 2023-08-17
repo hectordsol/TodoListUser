@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from './axios.js';
 
 const API = "http://localhost:4001";
 

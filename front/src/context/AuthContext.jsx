@@ -1,5 +1,7 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { registerRequest, loginRequest } from '../api/auth';
+import Cookie from 'js-cookie';
+import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
 
@@ -22,8 +24,8 @@ export const AuthProvider = ({children}) => {
             setAuthenticated(true);
         }
         catch(error){
-            console.log(error.response);
-            setErrors(error.response.data);
+            // console.log("signout",error.response.data[0]);
+            setErrors(error.response.data[0]);
         }
     }
     const signin = async (user) =>{
@@ -34,8 +36,8 @@ export const AuthProvider = ({children}) => {
             setAuthenticated(true);
         }
         catch(error){
-            console.log(error.response);
-            setErrors(error.response.data);
+            // console.log("signin",error.response.data[0]);
+            setErrors(error.response.data[0]);
         }
     }
     useEffect(() => {
@@ -46,6 +48,13 @@ export const AuthProvider = ({children}) => {
         return ()=>{ clearTimeout(timer)}
         }
     },[errors])
+
+    useEffect(() => {
+        const cookies = Cookies.get();
+        if(cookies.token)
+        console.log(token);
+    },[errors])
+
 return (
     <AuthContext.Provider value={{
         signup,

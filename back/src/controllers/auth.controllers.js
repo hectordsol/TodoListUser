@@ -14,7 +14,7 @@ export const register = async (req, res)=>{
     try{
         const userFound = await User.findOne({email});
         if (userFound) 
-            return res.status(400).json(["The email is ready in use"]);
+            return res.status(400).json({message: "The email is ready in use"});
         const passwordHash = await bcrypt.hash(password, HASH);
         const newUser = new User({
             username,
@@ -33,7 +33,7 @@ export const register = async (req, res)=>{
     });
     }
     catch (error){
-        res.status(500).json([error.message]);
+        res.status(500).json({message: error.message});
     }
 }
 
@@ -43,12 +43,14 @@ export const login = async (req, res)=>{
         const userFound = await User.findOne({email})
 
         if(!userFound)
-            return res.status(404).json(["User not Found.."]);
+            return res.status(404).json({message:"User not Found.."});
         const isMatch = await bcrypt.compare(password, userFound.password);
         if(!isMatch)
-            return res.status(409).json(["Password Incorrect.."]);
+            return res.status(409).json({message:"Password Incorrect.."});
     const token = await createAccessToken({id: userFound._id});
-    res.cookie('token', token);
+    res.cookie('token', token, 
+    // {sameSite:'none', secure:true,httpOnly:false}
+    );
     res.json({
         id:userFound._id,
         username: userFound.username,
@@ -58,7 +60,7 @@ export const login = async (req, res)=>{
     });
     }
     catch (error){
-        res.status(500).json([ error.message]);
+        res.status(500).json({message: error.message});
     }
 }
 
