@@ -12,6 +12,9 @@ export const allUsers = async (req, res)=>{
 export const register = async (req, res)=>{
     const {username, email, password}=req.body;
     try{
+        const userFound = await User.findOne({email});
+        if (userFound) 
+            return res.status(400).json(["The email is ready in use"]);
         const passwordHash = await bcrypt.hash(password, HASH);
         const newUser = new User({
             username,
@@ -30,7 +33,7 @@ export const register = async (req, res)=>{
     });
     }
     catch (error){
-        res.status(500).json({message: error.message});
+        res.status(500).json([error.message]);
     }
 }
 
@@ -40,10 +43,10 @@ export const login = async (req, res)=>{
         const userFound = await User.findOne({email})
 
         if(!userFound)
-            return res.status(404).json({message:"User not Found.."});
+            return res.status(404).json(["User not Found.."]);
         const isMatch = await bcrypt.compare(password, userFound.password);
         if(!isMatch)
-            return res.status(409).json({message:"Password Incorrect.."});
+            return res.status(409).json(["Password Incorrect.."]);
     const token = await createAccessToken({id: userFound._id});
     res.cookie('token', token);
     res.json({
@@ -55,7 +58,7 @@ export const login = async (req, res)=>{
     });
     }
     catch (error){
-        res.status(500).json({message: error.message});
+        res.status(500).json([ error.message]);
     }
 }
 
