@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { registerRequest, loginRequest } from '../api/auth';
-import Cookie from 'js-cookie';
+import { registerRequest, loginRequest, verifyTokenRequest } from '../api/auth';
+
 import Cookies from "js-cookie";
 
 export const AuthContext = createContext();
@@ -13,15 +13,16 @@ export const useAuth = () =>{
 }
 
 export const AuthProvider = ({children}) => {
+    const [loading, setLoading]=useState(true);
     const [user, setUser]=useState(null);
-    const [isAuthenticated, setAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [errors, setErrors]= useState([]);
 
     const signup = async (user) =>{
         try{
             const res = await registerRequest(user);
             setUser(res.data);
-            setAuthenticated(true);
+            setIsAuthenticated(true);
         }
         catch(error){
             // console.log("signout",error.response.data[0]);
@@ -33,7 +34,7 @@ export const AuthProvider = ({children}) => {
             const res = await loginRequest(user);
             console.log(res);
             setUser(res.data);
-            setAuthenticated(true);
+            setIsAuthenticated(true);
         }
         catch(error){
             // console.log("signin",error.response.data[0]);
@@ -49,10 +50,32 @@ export const AuthProvider = ({children}) => {
         }
     },[errors])
 
-    useEffect(() => {
+useEffect(() => {//cuando cargo la página
+    async function checkLogin() {
         const cookies = Cookies.get();
-        if(cookies.token)
-        console.log(token);
+        if(!cookies.token){//si no hay token válido
+            setIsAuthenticated(false);
+            setLoading(false);
+            return setUser(null);
+        }
+        try {//si hay token.. pedir al back y verificar
+            const res = await verifyTokenRequest(token);
+            if(!res.data) {// si no es válido
+                setIsAuthenticated(false);
+                setLoading(false);
+            return;
+            }
+            //si es válido
+            setIsAuthenticated(true);
+            setUser(res.data);
+            setLoading(false);
+        } catch (error) {
+            setIsAuthenticated(false);
+            setUser(null);
+            setLoading(false);
+        }
+    } 
+    checkLogin();
     },[errors])
 
 return (
@@ -60,6 +83,7 @@ return (
         signup,
         signin,
         user,
+        loading,
         isAuthenticated,
         errors,
         }}> 

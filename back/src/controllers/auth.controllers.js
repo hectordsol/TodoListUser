@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import {createAccessToken} from "../utils/jwt.js"
 const HASH = 10;
 
+import jwt from 'jsonwebtoken';
+const SECRET="secret123";
+
 export const allUsers = async (req, res)=>{
     const users = await User.find();
     res.status(201).json(users);
@@ -68,6 +71,7 @@ export const logout = (req, res)=>{
     res.cookie('token',"",{ espires: new Date(0)});
     return res.status(200).json({message:'Logout..'});
 }
+
 export const profile = async (req, res) => {
     const userFound = await User.findById(req.user.id);
     if(!userFound)
@@ -126,3 +130,21 @@ export const change = async (req, res)=>{
         res.status(500).json({message: error.message});
     }
 }
+
+export const verifyToken = async (req, res)=>{
+    const {token} = req.cookies;
+    if(!token) return res.status(401).json({message:'Unauthorized'});
+
+    jwt.verify(token, SECRET, async (err, user) =>{
+        if(err) return res.status(401).json({message: 'Token unauthorized'});
+        const userAuth = await User.findById(user.id);
+        if(!userAuth) return res.status(401).json({message: 'Is Not authorized'})
+
+
+        return res.json({
+            id:userAuth._id,
+            username:userAuth.username,
+            email: userAuth.email
+        });
+    });
+};
