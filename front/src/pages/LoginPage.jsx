@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useForm} from 'react-hook-form';
+import {useNavigate} from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 // import { toast } from 'react-toastify';
 
@@ -9,11 +10,17 @@ const {
   handleSubmit,
   formState:{errors}
 } = useForm();
-const {signin, errors: signinErrors}=useAuth();
+const {signin, errors: signinErrors, isAuthenticated}=useAuth();
 const onSubmit = handleSubmit ((data)=>{
   console.log(data);
   signin(data);
-})
+});
+const navigate = useNavigate();
+
+useEffect(()=>{
+  if(isAuthenticated)navigate('/tasks');
+},[isAuthenticated])
+
   return (
     <div className='flex h[calc(100vh-100px)] items-center justify-center'>
       <div className='flex-row bg-zinc-800 max-w-md w-full p-10 rounded-md'>
